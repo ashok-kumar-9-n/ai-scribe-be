@@ -1,6 +1,6 @@
 services:
-  notification_service_container:
-    container_name: notification_service_container
+  discovery_service_container:
+    container_name: discovery_service_container
     image: ${IMAGE_NAME}
     ports:
       - '8000:8000'
