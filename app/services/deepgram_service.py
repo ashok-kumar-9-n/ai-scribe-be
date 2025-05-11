@@ -31,7 +31,7 @@ class DeepgramService:
 
     @staticmethod
     def _fetch_from_deepgram(media_url):
-        url = f"{DEEPGRAM_BASE_URL}/v1/listen?model=nova-3&smart_format=true&diarize=true"
+        url = f"{DEEPGRAM_BASE_URL}/v1/listen?model=nova-3-medical&smart_format=true&diarize=true"
         headers = {
             "Authorization": f"Token {DEEPGRAM_API_KEY}",
             "Content-Type": "application/json",

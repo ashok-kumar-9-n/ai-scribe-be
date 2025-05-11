@@ -1,6 +1,16 @@
-from flask import current_app
+from bson import ObjectId
+
+def _make_json_serializable(obj):
+    if isinstance(obj, ObjectId):
+        return str(obj)
+    if isinstance(obj, dict):
+        return {k: _make_json_serializable(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_make_json_serializable(v) for v in obj]
+    return obj
 
 class GlobalLogger:
+
     def log_event(self, data=None, level="info", event_name="log_event", distinct_id="default"):
         try:
             log_message = {
@@ -9,9 +19,9 @@ class GlobalLogger:
                 "distinct_id": distinct_id,
                 "data": data,
             }
-            logger = current_app.logger
-            log_method = getattr(logger, level, logger.info)
-            log_method(log_message)
+            # Convert to JSON serializable
+            log_message = _make_json_serializable(log_message)
+            print(log_message) 
         except Exception as e:
             print(f"Logging failed: {e} | Data: {data}")
 

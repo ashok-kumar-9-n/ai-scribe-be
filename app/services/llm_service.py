@@ -17,7 +17,7 @@ class LLMService:
             return api_response(
                 status_code=200,
                 message="SOAP notes generated successfully.",
-                data={"soap_notes": soap_note, "report_generation_time": datetime.now().isoformat()},
+                data={"soap_notes": soap_note},
             )
 
         except Exception as e:

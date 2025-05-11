@@ -20,11 +20,6 @@ def api_response(status_code: int, message: str = None, data: Any = None):
         Returns:
             A JSON response with the status code
     """
-    if status_code >= 500:
-        request_info = extract_request_details(request)
-        thread = threading.Thread(target=send_error_alert_to_slack, args=(status_code, message, request_info, data))
-        thread.start()
-
     status_phrase = HTTPStatus(status_code).phrase
 
     response = {
@@ -37,24 +32,3 @@ def api_response(status_code: int, message: str = None, data: Any = None):
         response["data"] = data
 
     return jsonify(response), status_code
-
-def send_error_alert_to_slack(status_code, error_message, request_info, data):
-    
-    url = request_info.get("request_url")
-
-    request_info.pop('headers', None)
-    request_info_str = "\n".join([f"{key.upper()}: {value}" for key, value in request_info.items()])
-    global_logger.log_event(
-        {
-            "message": "Error Alert",
-            "status_code": status_code,
-            "error_message": error_message,
-            "request_info": request_info_str,
-            "data": data,
-            "url": url,
-            "method": request_info.get("method"),
-            "body": request_info.get("body"),
-            "remote_addr": request_info.get("remote_addr"),
-        },
-        level="error"
-    )
