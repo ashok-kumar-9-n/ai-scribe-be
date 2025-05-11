@@ -34,7 +34,7 @@ class OpenAIUtil:
             self.messages.append({"role": "user", "content": user_prompt})
             
         # Set model parameters
-        self.model = config.get("model", "gpt-4o-mini")
+        self.model = config.get("model", "gpt-4.1-mini")
         self.temperature = config.get("temperature", 0)
         self.max_tokens = config.get("max_tokens", 4096)
         self.top_p = config.get("top_p", 1)

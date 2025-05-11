@@ -1,23 +1,23 @@
 import json
-from app.prompts.generate_soap_notes import GENERATE_SOAP_NOTES_PROMPT_SYSTEM, GENERATE_SOAP_NOTES_PROMPT_USER
+from datetime import datetime
+from app.prompts.generate_soap_notes import SOAP_NOTES_SYSTEM_PROMPT, SOAP_NOTES_USER_PROMPT
 from app.utils.openai_util import OpenAIUtil
-import openai
+from typing import Dict, Any
 from app.services.logging_service import global_logger
 from app.utils.response_util import api_response
 
 
 class LLMService:
-
     @staticmethod
     def generate_soap_notes(data):
         try:
             transcript = data.get("transcript")
             formatted_transcript = LLMService._format_transcript(transcript)
-            soap_note = LLMService._generate_soap_note_with_openai(formatted_transcript)
+            soap_note = LLMService.generate_soap_note_from_transcript(formatted_transcript)
             return api_response(
                 status_code=200,
                 message="SOAP notes generated successfully.",
-                data={"soap_notes": soap_note},
+                data={"soap_notes": soap_note, "report_generation_time": datetime.now().isoformat()},
             )
 
         except Exception as e:
@@ -40,61 +40,42 @@ class LLMService:
         return transcript  # assume string format already
 
     @staticmethod
-    def _generate_soap_note_with_openai(transcript_text: str) -> str:
+    def generate_soap_note_from_transcript(transcript_text: str) -> Dict[str, Any]:
+        """
+        Generate a structured SOAP note from a medical transcript using OpenAI.
+        
+        Args:
+            transcript_text: The transcript of the doctor-patient conversation.
+            
+        Returns:
+            Dictionary containing the structured SOAP note with keys for 
+            subjective, objective, assessment, plan, and evidence mapping.
+            
+        Raises:
+            Exception: If there is an error generating or parsing the SOAP note.
+        """
+       
         try:
             # Initialize OpenAI utility with appropriate configuration
             openai_util = OpenAIUtil({
-                "system_prompt": GENERATE_SOAP_NOTES_PROMPT_SYSTEM,
-                "user_prompt": GENERATE_SOAP_NOTES_PROMPT_USER.format(transcript_text=transcript_text),
-                "model": "gpt-4o",  # Specify a more capable model for medical content
-                "temperature": 0.1,  # Low temperature for more consistent results
-                "response_format": {"type": "json_object"}  # Proper format specification
+                "system_prompt": SOAP_NOTES_SYSTEM_PROMPT,
+                "user_prompt": SOAP_NOTES_USER_PROMPT.format(transcript_text=transcript_text),
+                "response_format": {"type": "json_object"}
             })
             
             # Call the API
             response = openai_util.get()
-            
-            # Parse the JSON response
-            try:
-                soap_note = json.loads(response)
-            except json.JSONDecodeError:
-                global_logger.log_event({
-                    "message": "json_decode_error_soap_note",
-                    "raw_response_length": len(response),
-                    "raw_response_preview": response[:200] if response else None
-                }, level="error")
-                raise ValueError("Invalid JSON returned by OpenAI")
-            
-            # Validate required fields
-            required_fields = ["subjective", "objective", "assessment", "plan"]
-            missing_fields = [field for field in required_fields if field not in soap_note]
-            
-            if missing_fields:
-                global_logger.log_event({
-                    "message": "incomplete_soap_response",
-                    "missing_fields": missing_fields,
-                    "available_fields": list(soap_note.keys())
-                }, level="warning")
-                
-                # Fill in missing fields with placeholders
-                for field in missing_fields:
-                    soap_note[field] = "Not provided in the transcript"
-            
-            return soap_note
+            # Parse the result
+            if isinstance(response, str):
+                return json.loads(response)
+            elif isinstance(response, dict):
+                return response
+            else:
+                raise ValueError("Unexpected response format from OpenAI.")
             
         except Exception as e:
-            # Log the error with limited transcript info to avoid PII exposure
-            transcript_preview = transcript_text[:100] + "..." if transcript_text and len(transcript_text) > 100 else "[Empty transcript]"
-            
-            global_logger.log_event({
-                "message": "error_generating_soap_note",
-                "error": str(e),
-                "transcript_preview": transcript_preview,
-                "transcript_length": len(transcript_text) if transcript_text else 0
-            }, level="error")
-            
             raise Exception(f"Error generating SOAP note: {e}") from e
-
+        
     @staticmethod
     def _handle_exception(error, request_data):
         global_logger.log_event(
