@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 8000
 
 # Run the application
-CMD ["gunicorn", "-b", "0.0.0.0:8000", "main:app"]
+CMD ["gunicorn", "-b", "0.0.0.0:8000", "--timeout", "300", "app:app"]
