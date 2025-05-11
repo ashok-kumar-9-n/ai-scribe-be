@@ -18,6 +18,9 @@ def create_app():
     from app.controllers.s3_controller import s3_controller
     app.register_blueprint(s3_controller, url_prefix="/api/s3")
 
+    from app.controllers.record_controller import record_controller
+    app.register_blueprint(record_controller, url_prefix="/api/record")
+
 
     @app.route("/")
     def root():

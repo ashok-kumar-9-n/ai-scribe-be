@@ -1,6 +1,7 @@
 import json
 import requests
-from app.constants.config import DEEPGRAM_API_KEY, DEEPGRAM_BASE_URL
+from app.constants.config import DEEPGRAM_API_KEY
+from app.constants.constants import DEEPGRAM_BASE_URL
 from app.utils.response_util import api_response
 from app.services.logging_service import global_logger
 

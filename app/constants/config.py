@@ -7,9 +7,8 @@ load_dotenv()
 # Environment
 ENV = os.getenv("ENV", "PROD")
 
-# Deepgram constants
+# Deepgram credentials
 DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
-DEEPGRAM_BASE_URL = "https://api.deepgram.com"
 
 # AWS credentials
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
@@ -19,3 +18,7 @@ AWS_REGION_NAME = os.getenv("AWS_REGION_NAME")
 
 # OpenAI API key
 OPENAI_API_KEY=os.getenv("OPENAI_API_KEY")
+
+# MongoDB credentials
+MONGODB_URI = os.getenv("MONGODB_URI")
+DATABASE_NAME = os.getenv("DATABASE_NAME")

@@ -1,9 +1,9 @@
+boto3==1.35.9
+dnspython==2.6.1
 Flask==3.0.3
 Flask-Cors==4.0.1
 gunicorn==22.0.0
-python-dotenv==1.0.1
 openai==1.55.3
-boto3==1.35.9
 pymongo==3.10.1
+python-dotenv==1.0.1
 requests==2.31.0
-
