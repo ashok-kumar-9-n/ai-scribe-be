@@ -24,7 +24,7 @@ def create_app():
 
     @app.route("/")
     def root():
-        return api_response(200,'Welcome to AI Scribe')
+        return api_response(200,'This is DEV Test API!')
 
 
     @app.route("/health")

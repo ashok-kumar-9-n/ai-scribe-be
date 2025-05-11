@@ -1,0 +1,118 @@
+name: Prod CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+  build-and-push-ecr:
+    runs-on: ubuntu-latest
+    name: Build and Push Docker Images to ECR
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION_NAME }}
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        run: |
+          TAG=$(echo ${{ github.sha }} | head -c8)
+          AWS_ACCOUNT_ID="${{ secrets.AWS_ACCOUNT_ID }}"
+          AWS_REGION_NAME="${{ secrets.AWS_REGION_NAME }}"
+          IMAGE_NAME="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION_NAME}.amazonaws.com/${{ secrets.ECR_PROD_REPOSITORY_NAME }}:${TAG}"
+          
+          echo "Building Docker image: $IMAGE_NAME"
+          docker build -t $IMAGE_NAME .
+
+          echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
+        id: docker_build
+
+      - name: Push Docker image to ECR
+        run: |
+          docker push $IMAGE_NAME
+
+  deploy-to-ec2:
+    runs-on: ubuntu-latest
+    name: Deploy and Run Docker Images on EC2
+    needs: build-and-push-ecr
+
+    steps:
+      - name: SSH into EC2 and deploy containers
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_PROD_HOST }}
+          username: ${{ secrets.EC2_PROD_USER }}
+          key: ${{ secrets.EC2_PROD_SSH_KEY }}
+          script: |
+            # Stop Nginx if running
+            sudo systemctl stop nginx || echo "nginx not installed or running"
+
+            # Install Docker if not present
+            if ! command -v docker &> /dev/null; then
+                sudo yum update -y
+                sudo yum install -y docker
+                sudo systemctl start docker
+                sudo systemctl enable docker
+            fi
+
+            # Install Docker Compose if not present
+            if ! command -v docker-compose &> /dev/null; then
+                sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+                sudo chmod +x /usr/local/bin/docker-compose
+            fi
+
+            # Check and install missing library for Python if not installed
+            if ! rpm -q libxcrypt-compat &> /dev/null; then
+                sudo yum install -y libxcrypt-compat
+            fi
+
+            # Install ffmpeg if not present and add to PATH
+            if ! command -v ffmpeg &> /dev/null; then
+                sudo yum install -y ffmpeg
+                echo "export PATH=\$PATH:/usr/bin" >> ~/.bashrc
+                source ~/.bashrc
+            fi
+
+            # Log in to ECR
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION_NAME }} | sudo docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION_NAME }}.amazonaws.com
+
+            # Clean up Docker containers and images
+            sudo docker container prune -f
+            sudo docker image prune -a -f
+            sudo docker volume prune -f
+            sudo docker network prune -f
+
+            # Define image name
+            TAG=$(echo ${{ github.sha }} | head -c8)
+            IMAGE_NAME=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION_NAME }}.amazonaws.com/${{ secrets.ECR_PROD_REPOSITORY_NAME }}:$TAG
+            
+            echo "Using IMAGE_NAME: $IMAGE_NAME"
+
+            # Stop and remove the existing container
+            docker stop discovery_service_container || true
+            docker rm discovery_service_container || true
+
+            # Pull the new Docker image
+            sudo docker pull $IMAGE_NAME
+
+            export IMAGE_NAME=$IMAGE_NAME
+
+            # Deploy the new container using Docker Compose
+            cd ./discoveryservice
+
+            docker-compose down || true
+            docker-compose pull
+            docker-compose up -d --force-recreate --remove-orphans
+
+            echo "Flask app container started successfully on port 8000"
+            exit 0
