@@ -5,11 +5,9 @@ from app.utils.mongo_util import mongo_util
 from app.utils.response_util import api_response
 from app.services.logging_service import global_logger
 from app.constants.constants import LOCAL_BASE_URL, RECORDS_COLLECTION
-import concurrent.futures
-
+from bson import ObjectId
 
 class RecordService:
-
     @staticmethod
     def save_record(data):
         try:
@@ -82,6 +80,41 @@ class RecordService:
             global_logger.log_event(
                 {
                     "message": "error_fetching_clinical_record",
+                    "error": str(e),
+                    "data": data,
+                },
+                level="error"
+            )
+            return api_response(
+                status_code=500,
+                message="An error occurred while fetching the record.",
+                data={"error": str(e)}
+            )
+        
+    @staticmethod
+    def get_record_by_id(data):
+        try:
+            record_id = data.get("record_id")
+            document = mongo_util.find_one(
+                RECORDS_COLLECTION,
+                {"_id": ObjectId(record_id)}
+            )
+            if not document:
+                return api_response(
+                    status_code=404,
+                    message="No records found for this record_id.",
+                    data={}
+                )
+            document["_id"] = str(document["_id"])
+            return api_response(
+                status_code=200,
+                message="Record fetched successfully.",
+                data=document
+            )
+        except Exception as e:
+            global_logger.log_event(
+                {
+                    "message": "error_fetching_clinical_record_by_id",
                     "error": str(e),
                     "data": data,
                 },
