@@ -58,7 +58,13 @@ class RecordService:
             doctor_id = data.get("doctor_id")
             documents = mongo_util.find(
                 RECORDS_COLLECTION,
-                {"doctor_id": doctor_id}
+                {"doctor_id": doctor_id},
+                projection={
+                    "_id": 1,
+                    "patient_id": 1,
+                    "doctor_id": 1,
+                    "s3_url": 1
+                }
             )
 
             if not documents:
