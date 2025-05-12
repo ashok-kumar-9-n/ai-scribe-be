@@ -1,0 +1,418 @@
+{
+	"info": {
+		"_postman_id": "b0af1c9a-3d45-4073-b18a-64be2f7fa726",
+		"name": "AI-Scribe",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "16606692",
+		"_collection_link": "https://pepsales-9991.postman.co/workspace/Pepsales~aa96cabe-937b-4fa0-a6e0-ba4679f3691e/collection/16606692-b0af1c9a-3d45-4073-b18a-64be2f7fa726?action=share&source=collection_link&creator=16606692"
+	},
+	"item": [
+		{
+			"name": "Upload-media-file-to-s3",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/Users/ashok/Downloads/no-copyright-music-corporate-medical-338514.mp3"
+						},
+						{
+							"key": "patient_id",
+							"value": "100",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "doctor_id",
+							"value": "304",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/s3/upload",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"s3",
+						"upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Upload-media-url-to-s3",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"media_url\":\"https://drive.google.com/uc?export=download&id=1XAyddBAFUgJ9BX3RxISJswDjRXHlxJUe\"\n\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/s3/upload",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"s3",
+						"upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get-transcript-using-deepgram",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"media_url\":\"https://ai-scribe-test.s3.eu-north-1.amazonaws.com/3447e94d-af61-4292-93ac-892a6774a931.mp3\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/deepgram/get-transcript",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"deepgram",
+						"get-transcript"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Generate-soap-notes",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"transcript\": [\n            {\n                \"end_timestamp\": 1.1999999,\n                \"speaker\": 0,\n                \"start_timestamp\": 0.16,\n                \"text\": \"Doctor, you're good.\"\n            }]}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/llm/generate-soap-notes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"llm",
+						"generate-soap-notes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Save-record",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"patient_id\": \"2\",\n    \"soap_notes\": {\n        \"assessment\": [\n            {\n                \"explanation\": \"Provh.\",\n                \"label\": \"Clinical Reasoning\",\n                \"quote\": \"Doc\",\n                \"timestamp\": 644.555\n            }\n        ]\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/record/save-encounter",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"record",
+						"save-encounter"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Generate-soap-using-file",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/Users/ashok/Downloads/AWS BP 30 (mp3cut.net).mp3"
+						},
+						{
+							"key": "patient_id",
+							"value": "23",
+							"type": "text"
+						},
+						{
+							"key": "doctor_id",
+							"value": "34",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://13.49.223.112:8000/api/record/generate-soap",
+					"protocol": "http",
+					"host": [
+						"13",
+						"49",
+						"223",
+						"112"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"record",
+						"generate-soap"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Generate-soap-using-media-url",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"patient_id\": 39,\n    \"doctor_id\": 35,\n    \"media_url\": \"https://drive.google.com/uc?export=download&id=1XAyddBAFUgJ9BX3RxISJswDjRXHlxJUe\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/record/generate-soap",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"record",
+						"generate-soap"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch-doctor-record",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"doctor_id\":35\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/record/fetch-record",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"record",
+						"fetch-record"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch-records-by-doctor-id",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "sec-ch-ua-platform",
+						"value": "\"macOS\""
+					},
+					{
+						"key": "Referer",
+						"value": "http://localhost:5173/"
+					},
+					{
+						"key": "User-Agent",
+						"value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+					},
+					{
+						"key": "sec-ch-ua",
+						"value": "\"Chromium\";v=\"136\", \"Google Chrome\";v=\"136\", \"Not.A/Brand\";v=\"99\""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "sec-ch-ua-mobile",
+						"value": "?0"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"doctor_id\":35}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/record/fetch-records",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"record",
+						"fetch-records"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get-record-by-id",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "sec-ch-ua-platform",
+						"value": "\"macOS\""
+					},
+					{
+						"key": "Referer",
+						"value": "http://localhost:5173/"
+					},
+					{
+						"key": "User-Agent",
+						"value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+					},
+					{
+						"key": "sec-ch-ua",
+						"value": "\"Chromium\";v=\"136\", \"Google Chrome\";v=\"136\", \"Not.A/Brand\";v=\"99\""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "sec-ch-ua-mobile",
+						"value": "?0"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"record_id\":\"68212b8b21acb2b82e0d04cf\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/record/get-record-by-id",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"record",
+						"get-record-by-id"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
