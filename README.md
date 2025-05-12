@@ -39,8 +39,6 @@ docker compose up
 
 > A `docker-compose.yml` file is included in the project.
 
-```
-
 
 ## 📦 Postman Collection
 
